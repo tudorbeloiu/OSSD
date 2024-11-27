@@ -5,11 +5,14 @@ dim: .space 4
 op: .space 4
 memorie: .space 1024
 nadd: .space 4
+stGet: .space 4
+drGet: .space 4
 inp: .asciz "%d"
 inpN: .asciz "%d"
 inpOp: .asciz "%d"
 outOp: .asciz "%d\n"
-outAdd: .asciz "%hhu: (%d, %d)\n"
+outAdd: .asciz "%d: (%d, %d)\n"
+outGet: .asciz "(%d, %d)\n"
 comb: .asciz "%hhu si %d\n"
 .text
 
@@ -129,14 +132,17 @@ addl %ebx,%eax
 addl %esi,%eax
 subl $1,%eax
 
+movl $0,%edx
+movzbl id,%edx
+
 pushl %ecx
 pushl %eax
 pushl %ebx
-pushl id
+pushl %edx
 pushl $outAdd
 call printf
 popl %eax
-popl %eax
+popl %edx
 popl %eax
 popl %eax
 popl %ecx
@@ -174,6 +180,9 @@ movl op,%eax
 cmpl $1,%eax
 je addoperation
 
+cmpl $2,%eax
+je getoperation
+
 //mai jos afisez operatiile sa vad ca sunt ok
 /*
 pushl %ecx
@@ -203,6 +212,87 @@ pushl %ecx
 pushl nadd
 pushl %edi
 call addfunc
+popl %eax
+popl %eax
+popl %ecx
+
+decl %ecx
+jmp etloop
+
+
+getoperation:
+pushl %ecx
+pushl $id
+pushl $inp
+call scanf
+popl %eax
+popl %eax
+popl %ecx
+
+movl $0,%eax
+movb id,%al
+
+lea memorie,%edi
+movl $0,%ebx
+movl $0,%edx
+movb (%edi,%ebx,1),%dl
+getloop:
+cmpl $1023,%ebx
+je afisare0get
+cmpb %al,%dl
+jne nextindexget
+
+movl %ebx,stGet
+getToFindloop:
+cmpl $1023,%ebx
+je verifget
+cmpb %dl,%al
+jne afisareget
+
+incl %ebx
+movl $0,%edx
+movb (%edi,%ebx,1),%dl
+jmp getToFindloop
+
+nextindexget:
+incl %ebx
+movb (%edi,%ebx,1),%dl
+jmp getloop
+
+verifget:
+cmpb %al,%dl
+je afisareget2
+
+afisareget:
+decl %ebx
+afisareget2:
+movl %ebx,drGet
+pushl %ecx
+pushl drGet
+pushl stGet
+pushl $outGet
+call printf
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
+decl %ecx
+jmp etloop
+
+
+
+afisare0get:
+movl $0,%eax
+movl %eax,stGet
+movl %eax,drGet
+
+pushl %ecx
+pushl drGet
+pushl stGet
+pushl $outGet
+call printf
+popl %eax
 popl %eax
 popl %eax
 popl %ecx
