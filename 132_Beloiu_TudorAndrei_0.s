@@ -98,6 +98,8 @@ movb (%edi,%ebx,1),%dl
 jmp loopequalto0
 
 verificam:
+cmpl %esi,%eax
+je putem
 cmpb $0,%dl
 jne check
 incl %esi
@@ -105,6 +107,7 @@ incl %esi
 check:
 cmpl %esi,%eax
 ja nextmemoryindex
+je looputem
 putem:
 decl %ebx
 looputem:
