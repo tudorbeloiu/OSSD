@@ -7,6 +7,8 @@ memorie: .space 1024
 nadd: .space 4
 stGet: .space 4
 drGet: .space 4
+stPrint: .space 4
+drPrint: .space 4
 inp: .asciz "%d"
 inpN: .asciz "%d"
 inpOp: .asciz "%d"
@@ -14,6 +16,7 @@ outOp: .asciz "%d\n"
 outAdd: .asciz "%d: (%d, %d)\n"
 outGet: .asciz "(%d, %d)\n"
 comb: .asciz "%hhu si %d\n"
+outPrint: .asciz "%d: (%d, %d)\n"
 .text
 
 addfunc:
@@ -157,6 +160,89 @@ popl %ebp
 ret
 
 
+
+funcprintmemory:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+movl $0,%ebx
+
+movl $0,%eax
+loopfuncprintmemory:
+cmpl $1023,%ebx /* orice fisier are minim 2 blocuri deci automat daca ajunge la 1023 nu mai exista niciun fisier(memoria are 1024 bytes) */
+jae endfuncprintmemory
+
+movl $0,%eax
+movl $0,%edx
+movb (%edi,%ebx,1),%dl
+
+cmpb %dl,%al /*daca sunt diferite inseamna ca am gasit un fisier */
+je nextindexprintmemory
+
+movl 16(%ebp),%esi
+movl %ebx,(%esi) /* punem in stPrint indicele de unde incepe id ul */
+movb (%edi,%ebx,1),%al
+
+printcurrid:
+cmpl $1023,%ebx
+je checkifelementequaltoo
+cmpb %al,%dl
+jne etidecrease /* 1 */
+
+incl %ebx
+movb (%edi,%ebx,1),%dl
+jmp printcurrid
+
+checkifelementequaltoo:
+cmpb %al,%dl
+je thisonetoo
+/* daca nu sunt egale, scadem 1 din ebx ca asta inseamna ca sirul id ului se termina cu o pozitie mai in spate */
+etidecrease: /* 1 */
+decl %ebx
+jmp thisonetoo
+
+thisonetoo:
+movl 12(%ebp),%esi
+movl %ebx,(%esi) /* punem in adresa de memorie a lui drPrint valoarea lui ebx */
+jmp printinterval
+
+nextindexprintmemory:
+incl %ebx
+movl $0,%edx
+movb (%edi,%ebx,1),%dl
+jmp loopfuncprintmemory
+
+printinterval:
+
+
+movl 16(%ebp),%esi
+movl (%esi),%esi
+movl 12(%ebp),%edx
+movl (%edx),%edx
+/*al are id ul */
+
+pushl %ecx
+pushl %ebx
+pushl %edx
+pushl %esi
+pushl %eax
+pushl $outPrint
+call printf
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %ebx
+popl %ecx
+
+jmp nextindexprintmemory
+
+endfuncprintmemory:
+popl %ebp
+ret
+
+
 .global main
 
 main:
@@ -185,6 +271,9 @@ je addoperation
 
 cmpl $2,%eax
 je getoperation
+
+cmpl $3,%eax
+je deleteoperation
 
 //mai jos afisez operatiile sa vad ca sunt ok
 /*
@@ -303,6 +392,73 @@ popl %ecx
 decl %ecx
 jmp etloop
 
+
+deleteoperation:
+pushl %ecx
+pushl $id
+pushl $inp
+call scanf
+popl %eax
+popl %eax
+popl %ecx
+
+movl $0,%eax
+movb id,%al
+
+lea memorie,%edi
+movl $0,%ebx
+movl $0,%edx
+movb (%edi,%ebx,1),%dl
+
+loopfindidtodelete:
+cmpl $1023,%ebx
+je printmemory
+
+cmpb %al,%dl
+jne nextindexfinddelete
+foundidtodelete:
+cmpl $1023,%ebx
+je deletecheck
+
+cmpb %al,%dl
+jne printmemory
+
+movl $0,%edx
+movb %dl,(%edi,%ebx,1)
+incl %ebx
+movb (%edi,%ebx,1),%dl
+jmp foundidtodelete
+
+nextindexfinddelete:
+incl %ebx
+movb (%edi,%ebx,1),%dl
+jmp loopfindidtodelete
+
+deletecheck:
+cmpb %al,%dl
+je deletethisebxtoo
+jmp printmemory
+
+deletethisebxtoo:
+movl $0,%edx
+movb %dl,(%edi,%ebx,1)
+jmp printmemory
+
+/* functie universala pentru a afisa toate id urile + intervale din memorie */
+printmemory:
+lea memorie,%edi
+pushl %ecx
+pushl $stPrint
+pushl $drPrint
+pushl %edi
+call funcprintmemory
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
+decl %ecx
+jmp etloop
 
 etexit:
 pushl $0
