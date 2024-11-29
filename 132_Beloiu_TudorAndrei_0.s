@@ -242,6 +242,50 @@ endfuncprintmemory:
 popl %ebp
 ret
 
+/* ideea e sa parcurg memoria(cu index ul ecx)  si cand gasesc element diferit de 0 sa i dau rewrite pe pozitia ebx */
+/* dupa aceea, trebuie sa facem toate elementele de dupa ebx 0 */
+rewritememory:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+movl $0,%ebx
+movl $0,%ecx
+movl $0,%edx
+
+looprewritememory:
+cmpl $1024,%ecx
+je insert0afterebx
+
+movl $0,%edx
+movb (%edi,%ecx,1),%dl
+cmpb $0,%dl
+/* daca sunt diferite, il pun in memorie pe pozitia ebx */
+jne insertmemory
+
+incl %ecx
+jmp looprewritememory
+
+insertmemory:
+movb %dl,(%edi,%ebx,1)
+incl %ebx
+incl %ecx
+jmp looprewritememory
+
+insert0afterebx:
+cmpl $1024,%ebx
+je endfuncrewritememory
+
+movl $0,%edx
+movb %dl,(%edi,%ebx,1)
+
+incl %ebx
+jmp insert0afterebx
+
+endfuncrewritememory:
+popl %ebp
+ret
+
 
 .global main
 
@@ -252,6 +296,19 @@ call scanf
 popl %eax
 popl %eax
 
+lea memorie,%edi
+movl $0,%ecx
+memoryinit0:
+cmpl $1024,%ecx
+je solveproject
+
+movl $0,%eax
+movb %al,(%edi,%ecx,1)
+
+incl %ecx
+jmp memoryinit0
+
+solveproject:
 movl n,%ecx
 etloop:
 cmp $0,%ecx
@@ -274,6 +331,9 @@ je getoperation
 
 cmpl $3,%eax
 je deleteoperation
+
+cmpl $4,%eax
+je defragoperation
 
 //mai jos afisez operatiile sa vad ca sunt ok
 /*
@@ -459,6 +519,17 @@ popl %ecx
 
 decl %ecx
 jmp etloop
+
+defragoperation:
+lea memorie,%edi
+
+pushl %ecx
+pushl %edi
+call rewritememory
+popl %eax
+popl %ecx
+
+jmp printmemory
 
 etexit:
 pushl $0
