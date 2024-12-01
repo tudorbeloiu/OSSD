@@ -1,33 +1,171 @@
 .data
-memorie: .space 1048576 /*1024x1024 */
+memorie: .space 1048576
 id: .space 1
 n: .space 4
 numberOfFiles: .space 4
 sz: .space 4
+numberOfBlocks: .space 4
+indLinie: .space 4
+indJST: .space 4
+indJDR: .space 4
 numberInput: .asciz "%d"
 op: .asciz "%d"
-interval: .asciz "%d: ((%d, %d), (%d, %d))\n"
+intervale: .asciz "%d: ((%d, %d), (%d, %d))\n"
 getOutput: .asciz "((%d, %d), (%d, %d))\n"
-
+outputZero: .asciz "((0,0), (0,0))\n"
+mortiiei: .asciz "%d\n"
+mortiiei2: .asciz "%d: ((%d, %d), (%d, %d))\n"
 .text
 
 addfunction:
 pushl %ebp
 movl %esp,%ebp
 
-movl 16(%ebp),%edi
+movl 8(%ebp),%edi
 
 movl $0,%edx
-movl 8(%ebp),%eax
+movl sz,%eax
 cmpl $8,%eax
-jbe endaddfunction
+jbe endaddfunctionwith0
+cmpl $8192,%eax
+ja endaddfunctionwith0
 movl $8,%ebx
 divl %ebx
+movl %eax,%esi
 cmpl $0,%edx
-je fillmemory
-incl %eax
+je startloop
+incl %esi
 
+startloop:
+movl 12(%ebp),%ebx
+movl %esi,(%ebx)
 
+movl $0,%ebx
+movl $0,%ecx
+addloopline:
+cmpl $1024,%ebx
+je endaddfunctionwith0
+
+movl $0,%ecx
+addloopcolumn:
+cmpl $1024,%ecx
+je checknextline
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+
+movb (%edi,%eax,1),%dl /*verificam daca elementul este 0 */
+cmpb $0,%dl
+jne nextmemoryindexonline
+
+movl 12(%ebp),%esi
+movl (%esi),%esi
+
+loopequalto0:
+cmpl $1023,%ecx
+je verificam
+cmpl $0,%esi
+je putem
+cmpb $0,%dl
+jne nextmemoryindexonline
+decl %esi
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+incl %ecx
+addl %ecx,%eax
+movl $0,%edx
+
+movb (%edi,%eax,1),%dl
+jmp loopequalto0
+
+verificam:
+cmpl $1,%esi
+je looputem
+cmpl $1,%esi
+ja checknextline
+cmpl $0,%esi
+je putem
+
+putem:
+decl %ecx
+looputem:
+movl 12(%ebp),%esi
+movl (%esi),%esi
+completarecuid:
+cmpl $0,%esi
+je afisareadaugare
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+
+movl $0,%edx
+movb id,%dl
+movb %dl,(%edi,%eax,1)
+decl %ecx
+decl %esi
+
+jmp completarecuid
+
+nextmemoryindexonline:
+incl %ecx
+jmp addloopcolumn
+
+checknextline:
+incl %ebx
+jmp addloopline
+
+afisareadaugare:
+incl %ecx
+movl 12(%ebp),%esi
+movl (%esi),%esi
+addl %ecx,%esi
+subl $1,%esi
+
+movl 24(%ebp),%edx
+movl %ebx,(%edx)
+
+movl 20(%ebp),%edx
+movl %esi,(%edx)
+
+movl 16(%ebp),%edx
+movl %ecx,(%edx)
+
+movl $0,%edx
+movzbl id,%edx
+
+pushl indJDR
+pushl indLinie
+pushl indJST
+pushl indLinie
+pushl %edx
+pushl $mortiiei2
+call printf
+popl %edx
+popl %esi
+popl %esi
+popl %esi
+popl %esi
+popl %esi
+
+jmp endaddfunction
+
+endaddfunctionwith0:
+pushl %ecx
+pushl %eax
+pushl %edx
+pushl $outputZero
+call printf
+popl %esi
+popl %edx
+popl %eax
+popl %ecx
 
 endaddfunction:
 popl %ebp
@@ -71,9 +209,9 @@ call scanf
 popl %eax
 popl %eax
 
-movl $0,%ecx
+movl n,%ecx
 operationsloop:
-cmpl n,%ecx
+cmpl $0,%ecx
 je et_exit
 
 pushl %ecx
@@ -84,6 +222,7 @@ popl %eax
 popl %eax
 popl %ecx
 
+movl $0,%eax
 movl op,%eax
 
 cmpl $1,%eax
@@ -123,9 +262,6 @@ popl %ebx
 popl %eax
 popl %ecx
 
-movl id,%ebx
-andl $0xDD,%ebx
-movb %bl,id
 
 pushl %ecx
 pushl %eax
@@ -138,12 +274,20 @@ popl %eax
 popl %ecx
 
 lea memorie,%edi
+movl id,%edx
+andl $0xFF,%edx
+movb %dl,id
+
 pushl %ecx
 pushl %eax
+pushl $indLinie
+pushl $indJDR
+pushl $indJST
+pushl $numberOfBlocks
 pushl %edi
-pushl id
-pushl sz
 call addfunction
+popl %ebx
+popl %ebx
 popl %ebx
 popl %ebx
 popl %ebx
@@ -154,23 +298,23 @@ incl %eax
 jmp loopthroughoperations
 
 endaddoperation:
-incl %ecx
+decl %ecx
 jmp operationsloop
 
 
 
 getoperation:
-incl %ecx
+decl %ecx
 jmp operationsloop
 
 
 deleteoperation:
-incl %ecx
+decl %ecx
 jmp operationsloop
 
 
 defragmentationoperation:
-incl %ecx
+decl %ecx
 jmp operationsloop
 
 et_exit:
