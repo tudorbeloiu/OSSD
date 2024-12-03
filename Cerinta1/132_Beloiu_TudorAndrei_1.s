@@ -171,6 +171,96 @@ endaddfunction:
 popl %ebp
 ret
 
+
+
+getfunction:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+movl $0,%ecx
+movl $0,%ebx
+
+getloopline:
+cmpl $1024,%ebx
+je getprint0interval
+
+movl $0,%ecx
+getloopcolumn:
+cmpl $1023,%ecx
+je changelineget
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+
+movb (%edi,%eax,1),%dl
+cmpb id,%dl
+jne changecolumnget
+
+movl 20(%ebp),%esi
+movl %ebx,(%esi) /*punem indicele liniei in memorie la adresa lui indLinie */
+
+movl 12(%ebp),%esi
+movl %ecx,(%esi) /*indicele din stanga */
+whileisid:
+cmpl $1023,%ecx
+je verifget
+cmpb id,%dl
+jne afisareget
+
+incl %ecx
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+movb (%edi,%eax,1),%dl
+jmp whileisid
+
+changecolumnget:
+incl %ecx
+jmp getloopcolumn
+
+changelineget:
+incl %ebx
+jmp getloopline
+
+verifget:
+cmpb id,%dl
+je afisareget2
+
+afisareget:
+decl %ecx
+afisareget2:
+movl 16(%ebp),%esi
+movl %ecx,(%esi) /*aici se termina id ul */
+
+pushl indJDR
+pushl indLinie
+pushl indJST
+pushl indLinie
+pushl $getOutput
+call printf
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+
+jmp endgetfunction
+
+getprint0interval:
+pushl $outputZero
+call printf
+popl %eax
+
+endgetfunction:
+popl %ebp
+ret
+
 .global main
 
 main:
@@ -304,6 +394,31 @@ jmp operationsloop
 
 
 getoperation:
+pushl %ecx
+pushl $id
+pushl $numberInput
+call scanf
+popl %eax
+popl %eax
+popl %ecx
+
+lea memorie,%edi
+movl id,%edx
+andl $0xFF,%edx
+movb %dl,id
+
+pushl %ecx
+pushl $indLinie
+pushl $indJDR
+pushl $indJST
+pushl %edi
+call getfunction
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
 decl %ecx
 jmp operationsloop
 
