@@ -10,11 +10,10 @@ indJST: .space 4
 indJDR: .space 4
 numberInput: .asciz "%d"
 op: .asciz "%d"
-intervale: .asciz "%d: ((%d, %d), (%d, %d))\n"
 getOutput: .asciz "((%d, %d), (%d, %d))\n"
 outputZero: .asciz "((0,0), (0,0))\n"
-mortiiei: .asciz "%d\n"
-mortiiei2: .asciz "%d: ((%d, %d), (%d, %d))\n"
+intervalOutput: .asciz "%d: ((%d, %d), (%d, %d))\n"
+otpget: .asciz "((%d, %d), (%d, %d))\n"
 .text
 
 addfunction:
@@ -145,7 +144,7 @@ pushl indLinie
 pushl indJST
 pushl indLinie
 pushl %edx
-pushl $mortiiei2
+pushl $intervalOutput
 call printf
 popl %edx
 popl %esi
@@ -242,7 +241,7 @@ pushl indJDR
 pushl indLinie
 pushl indJST
 pushl indLinie
-pushl $getOutput
+pushl $otpget
 call printf
 popl %eax
 popl %eax
@@ -260,6 +259,168 @@ popl %eax
 endgetfunction:
 popl %ebp
 ret
+
+
+
+deletefunction:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+movl $0,%ecx
+movl $0,%ebx
+
+delloopline:
+cmpl $1024,%ebx
+je enddeletefunction
+
+movl $0,%ecx
+delloopcolumn:
+cmpl $1024,%ecx
+je delchangeline
+
+movl $1024,%eax
+movl $0,%edx
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+movb (%edi,%eax,1),%dl
+
+cmpb id,%dl
+jne delchangecolumn
+deletemyid:
+cmpl $1023,%ecx
+je checktodelete
+
+cmpb id,%dl
+jne enddeletefunction
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+
+movb %dl,(%edi,%eax,1)
+incl %ecx
+incl %eax
+movb (%edi,%eax,1),%dl
+jmp deletemyid
+
+delchangecolumn:
+incl %ecx
+jmp delloopcolumn
+
+delchangeline:
+incl %ebx
+jmp delloopline
+
+checktodelete:
+cmpb id,%dl
+jne enddeletefunction
+
+movl $0,%edx
+movb %dl,(%edi,%eax,1)
+
+enddeletefunction:
+popl %ebp
+ret
+
+
+printmemoryfunction:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+/* 12 pt indJST, 16 indJDR, 20 indLinie */
+movl $0,%esi
+movl $0,%ecx
+
+looplineprint:
+cmpl $1024,%esi
+je endprintmemoryfunction
+
+movl $0,%ecx
+loopcolumnprint:
+cmpl $1023,%ecx
+jae changelineprint
+
+movl $1024,%eax
+movl $0,%edx
+mull %esi
+addl %ecx,%eax
+movl $0,%edx
+
+movb (%edi,%eax,1),%dl
+cmpb $0,%dl
+je changecolumnprint
+
+movl 20(%ebp),%ebx
+movl %esi,(%ebx) /* punem linia */
+movl 12(%ebp),%ebx
+movl %ecx,(%ebx) /*punem indJST */
+
+movl $0,%ebx
+movb %dl,%bl
+
+printcurrentid:
+cmpl $1023,%ecx
+je checkifsameid
+
+cmpb %dl,%bl
+jne etecxdecrease
+
+incl %ecx
+incl %eax
+movb (%edi,%eax,1),%bl
+jmp printcurrentid
+
+
+checkifsameid:
+cmpb %dl,%bl
+je thisonetoo
+etecxdecrease:
+decl %ecx
+jmp thisonetoo
+
+changecolumnprint:
+incl %ecx
+jmp loopcolumnprint
+
+changelineprint:
+incl %esi
+jmp looplineprint
+
+thisonetoo:
+movl 16(%ebp),%ebx /* indJDR */
+movl %ecx,(%ebx)
+jmp printinterval
+
+printinterval:
+pushl %ecx
+pushl %esi
+pushl indJDR
+pushl indLinie
+pushl indJST
+pushl indLinie
+pushl %edx
+pushl $intervalOutput
+call printf
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %esi
+popl %ecx
+
+jmp changecolumnprint
+
+endprintmemoryfunction:
+popl %ebp
+ret
+
 
 .global main
 
@@ -424,6 +585,42 @@ jmp operationsloop
 
 
 deleteoperation:
+pushl %ecx
+pushl $id
+pushl $numberInput
+call scanf
+popl %eax
+popl %eax
+popl %ecx
+
+movl id,%edx
+andl $0xFF,%edx
+movb %dl,id
+
+lea memorie,%edi
+
+pushl %ecx
+pushl %edi
+call deletefunction
+popl %eax
+popl %ecx
+
+/* acum printam intervalele existente prin functia de afisare(o sa mai avem nevoie de ea) */
+lea memorie,%edi
+
+pushl %ecx
+pushl $indLinie
+pushl $indJDR
+pushl $indJST
+pushl %edi
+call printmemoryfunction
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
+
 decl %ecx
 jmp operationsloop
 
