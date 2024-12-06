@@ -478,11 +478,13 @@ jne defragdecrecx
 
 incl %ecx
 movl $0,%edx
-movl $0,%eax
+movl $1024,%eax
 mull %esi
 addl %ecx,%eax
 movl $0,%edx
 movb (%edi,%eax,1),%dl
+
+jmp defragloopsameid
 
 verifdefrag:
 cmpb id,%dl
@@ -541,7 +543,7 @@ mull %ebx
 movl 52(%ebp),%ebx
 movl (%ebx),%ebx
 addl %ebx,%eax
-addl %ecx,%eax   /*t[linia*1024+coloana+i] = elementinit */ 
+addl %ecx,%eax   /*t[linia*8+coloana+i] = elementinit */ 
 
 movl $0,%edx
 movzbl id,%edx
@@ -653,7 +655,7 @@ columnchangeelements:
 cmpl $1024,%ecx
 je lineincreaseelements
 
-movl $0,%eax
+movl $1024,%eax
 movl $0,%edx
 mull %ebx
 addl %ecx,%eax
@@ -663,6 +665,7 @@ movb (%esi,%eax,1),%dl
 movb %dl,(%edi,%eax,1)
 
 incl %ecx
+jmp columnchangeelements
 
 lineincreaseelements:
 incl %ebx
@@ -923,7 +926,7 @@ popl %ecx
 
 
 lea memorie,%edi
-lea memorie,%esi
+lea tempmemorie,%esi
 
 pushl %ecx
 pushl %edi
@@ -933,7 +936,8 @@ popl %eax
 popl %eax
 popl %ecx
 
-lea tempmemorie,%edi
+
+lea memorie,%edi
 
 pushl %ecx
 pushl $indLinie
@@ -946,7 +950,6 @@ popl %eax
 popl %eax
 popl %eax
 popl %ecx
-
 
 decl %ecx
 jmp operationsloop
