@@ -20,7 +20,7 @@ coloana: .space 4
 numberInput: .asciz "%d"
 op: .asciz "%d"
 getOutput: .asciz "((%d, %d), (%d, %d))\n"
-outputZero: .asciz "((0,0), (0,0))\n"
+outputZero: .asciz "((0, 0), (0, 0))\n"
 intervalOutput: .asciz "%d: ((%d, %d), (%d, %d))\n"
 otpget: .asciz "((%d, %d), (%d, %d))\n"
 
@@ -563,13 +563,12 @@ movl (%ecx),%ecx
 movl 40(%ebp),%esi
 movl (%esi),%esi
 
-movl 20(%ebp),%ebx
-movl (%ebx),%ebx
-
 movl 32(%ebp),%edi
+
+movl distanta,%ebx
 stergemdinmem:
 cmpl $0,%ebx
-je revenireregistrii
+jl revenireregistrii
 
 movl $0,%edx
 movl $1024,%eax
@@ -580,14 +579,13 @@ movb %dl,(%edi,%eax,1)
 decl %ecx
 decl %ebx
 
+jmp stergemdinmem
 revenireregistrii:
 incl %ecx
-movl 36(%ebp),%ebx
-movl %ecx,(%ebx)
+movl 32(%ebp),%edi
 
 movl 40(%ebp),%esi
 movl (%esi),%esi
-
 
 changeloopcolumndefrag:
 incl %ecx
@@ -627,6 +625,8 @@ addl %ecx,%eax
 movl $0,%edx
 movb %dl,(%esi,%eax,1)
 incl %ecx
+
+jmp loopcolumninitzero
 
 changelineinitzero:
 incl %ebx
@@ -937,7 +937,7 @@ popl %eax
 popl %ecx
 
 
-lea memorie,%edi
+lea tempmemorie,%edi
 
 pushl %ecx
 pushl $indLinie
