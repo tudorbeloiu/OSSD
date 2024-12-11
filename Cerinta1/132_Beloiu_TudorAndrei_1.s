@@ -20,6 +20,7 @@ coloana: .space 4
 numberInput: .asciz "%d"
 op: .asciz "%d"
 getOutput: .asciz "((%d, %d), (%d, %d))\n"
+getOutputZero: .asciz "((0, 0), (0, 0))\n"
 outputZero: .asciz "%d: ((0, 0), (0, 0))\n"
 intervalOutput: .asciz "%d: ((%d, %d), (%d, %d))\n"
 otpget: .asciz "((%d, %d), (%d, %d))\n"
@@ -265,11 +266,8 @@ popl %eax
 jmp endgetfunction
 
 getprint0interval:
-movl $0,%edx
-movzbl id,%edx
-
 pushl %edx
-pushl $outputZero
+pushl $getOutputZero
 call printf
 popl %edx
 popl %eax

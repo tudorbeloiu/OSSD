@@ -15,7 +15,7 @@ inpOp: .asciz "%d"
 outOp: .asciz "%d\n"
 outAdd: .asciz "%d: (%d, %d)\n"
 outGet: .asciz "(%d, %d)\n"
-outGetZero: .asciz "%d: (%d, %d)\n"
+outGetZero: .asciz "(%d, %d)\n"
 comb: .asciz "%hhu si %d\n"
 outPrint: .asciz "%d: (%d, %d)\n"
 outZero: .asciz "%d: (0, 0)\n"
@@ -452,9 +452,6 @@ jmp etloop
 
 
 afisare0get:
-movl $0,%edx
-movzbl id,%edx
-
 movl $0,%eax
 movl %eax,stGet
 movl %eax,drGet
@@ -462,10 +459,8 @@ movl %eax,drGet
 pushl %ecx
 pushl drGet
 pushl stGet
-pushl %edx
 pushl $outGetZero
 call printf
-popl %edx
 popl %eax
 popl %eax
 popl %eax
