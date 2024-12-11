@@ -15,9 +15,10 @@ inpOp: .asciz "%d"
 outOp: .asciz "%d\n"
 outAdd: .asciz "%d: (%d, %d)\n"
 outGet: .asciz "(%d, %d)\n"
+outGetZero: .asciz "%d: (%d, %d)\n"
 comb: .asciz "%hhu si %d\n"
 outPrint: .asciz "%d: (%d, %d)\n"
-outZero: .asciz "(0, 0)\n"
+outZero: .asciz "%d: (0, 0)\n"
 .text
 
 addfunc:
@@ -130,9 +131,14 @@ incl %ebx
 jmp loopcompletarememorie
 
 nextidfalse:
+movl $0,%edx
+movzbl id,%edx
+
 pushl %ecx
+pushl %edx
 pushl $outZero
 call printf
+popl %edx
 popl %eax
 popl %ecx
 
@@ -446,6 +452,9 @@ jmp etloop
 
 
 afisare0get:
+movl $0,%edx
+movzbl id,%edx
+
 movl $0,%eax
 movl %eax,stGet
 movl %eax,drGet
@@ -453,8 +462,10 @@ movl %eax,drGet
 pushl %ecx
 pushl drGet
 pushl stGet
-pushl $outGet
+pushl %edx
+pushl $outGetZero
 call printf
+popl %edx
 popl %eax
 popl %eax
 popl %eax
