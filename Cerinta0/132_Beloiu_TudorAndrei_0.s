@@ -69,6 +69,8 @@ movl $0,%edx
 movl dim,%eax
 cmpl $8,%eax
 jbe nextidfalse /*obligatoriu fiecare id e pus pe minim 2 blocuri */
+cmpl $8192,%eax
+jg nextidfalse
 movl $8,%ebx
 divl %ebx /*eax retine initial nr de blocuri; daca edx e mai mare decat 0, inseamna ca nr de blocuri +=1*/
 cmpl $0,%edx
@@ -117,7 +119,7 @@ putem:
 decl %ebx
 looputem:
 cmpl $0,%eax
-je afisareadaugare
+je nextidtrue
 
 movl $0,%edx
 movb id,%dl
@@ -131,6 +133,7 @@ incl %ebx
 jmp loopcompletarememorie
 
 nextidfalse:
+/*
 movl $0,%edx
 movzbl id,%edx
 
@@ -141,14 +144,14 @@ call printf
 popl %edx
 popl %eax
 popl %ecx
-
+*/
 decl %ecx
 jmp etloopadd
 
 nextidtrue:
 decl %ecx
 jmp etloopadd
-
+/*
 afisareadaugare:
 incl %ebx
 addl %ebx,%eax
@@ -171,6 +174,7 @@ popl %eax
 popl %ecx
 
 jmp nextidtrue
+*/
 
 endaddfunc:
 popl %ebp
@@ -385,9 +389,20 @@ popl %eax
 popl %eax
 popl %ecx
 
+
+lea memorie,%edi
+pushl %ecx
+pushl $stPrint
+pushl $drPrint
+pushl %edi
+call funcprintmemory
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
 decl %ecx
 jmp etloop
-
 
 getoperation:
 pushl %ecx
