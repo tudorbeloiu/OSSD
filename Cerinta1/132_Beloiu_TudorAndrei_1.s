@@ -36,9 +36,9 @@ movl 8(%ebp),%edi
 movl $0,%edx
 movl sz,%eax
 cmpl $8,%eax
-jbe endaddfunctionwith0
+jbe endaddfunction
 cmpl $8192,%eax
-ja endaddfunctionwith0
+ja endaddfunction
 movl $8,%ebx
 divl %ebx
 movl %eax,%esi
@@ -54,7 +54,7 @@ movl $0,%ebx
 movl $0,%ecx
 addloopline:
 cmpl $1024,%ebx
-je endaddfunctionwith0
+je endaddfunction
 
 movl $0,%ecx
 addloopcolumn:
@@ -108,7 +108,7 @@ movl 12(%ebp),%esi
 movl (%esi),%esi
 completarecuid:
 cmpl $0,%esi
-je afisareadaugare
+je endaddfunction
 
 movl $0,%edx
 movl $1024,%eax
@@ -131,6 +131,7 @@ checknextline:
 incl %ebx
 jmp addloopline
 
+/*
 afisareadaugare:
 incl %ecx
 movl 12(%ebp),%esi
@@ -165,7 +166,8 @@ popl %esi
 popl %esi
 
 jmp endaddfunction
-
+*/
+/*
 endaddfunctionwith0:
 movl $0,%edx
 movzbl id,%edx
@@ -179,7 +181,7 @@ popl %esi
 popl %edx
 popl %eax
 popl %ecx
-
+*/
 endaddfunction:
 popl %ebp
 ret
@@ -805,10 +807,25 @@ popl %ebx
 popl %eax
 popl %ecx
 
+
 incl %eax
 jmp loopthroughoperations
 
 endaddoperation:
+lea memorie,%edi
+
+pushl %ecx
+pushl $indLinie
+pushl $indJDR
+pushl $indJST
+pushl %edi
+call printmemoryfunction
+popl %eax
+popl %eax
+popl %eax
+popl %eax
+popl %ecx
+
 decl %ecx
 jmp operationsloop
 

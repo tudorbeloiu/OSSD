@@ -70,7 +70,7 @@ movl dim,%eax
 cmpl $8,%eax
 jbe nextidfalse /*obligatoriu fiecare id e pus pe minim 2 blocuri */
 cmpl $8192,%eax
-jg nextidfalse
+ja nextidfalse
 movl $8,%ebx
 divl %ebx /*eax retine initial nr de blocuri; daca edx e mai mare decat 0, inseamna ca nr de blocuri +=1*/
 cmpl $0,%edx
