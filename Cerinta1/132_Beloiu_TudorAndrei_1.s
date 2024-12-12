@@ -960,7 +960,7 @@ popl %eax
 popl %ecx
 
 
-lea tempmemorie,%edi
+lea memorie,%edi
 
 pushl %ecx
 pushl $indLinie
