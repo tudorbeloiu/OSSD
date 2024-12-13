@@ -3,7 +3,7 @@ max_path_size: .space 256
 dir: .space 256
 str_input: .asciz "%s"
 str_output: .asciz "%s\n"
-int_input: .asciz "%d\n"
+int_output: .asciz "%d\n"
 error_msg: .asciz "Eroare! Nu am putut deschide directorul!\n"
 error_msg_file: .asciz "Eroare! Nu am putut deschide fisierul!\n"
 format_path: .asciz "%s/%s"
@@ -15,6 +15,9 @@ dot: .asciz "."
 dotdot: .asciz ".."
 fd: .space 4
 fd_nou: .space 4
+file_stat: .space 96
+st_size: .space 128
+msj_complet: .asciz "File: %s, Descriptor: %d, Size: %d\n"
 .text
 
 .global main
@@ -111,10 +114,30 @@ movl %edx,%ebx
 incl %ebx
 movl %ebx,fd_nou
 
+/*
 pushl fd_nou
-pushl $int_input
+pushl $int_output
 call printf
 addl $8,%esp
+*/
+
+pushl $file_stat
+pushl fd
+call fstat
+addl $8,%esp
+
+cmpl $0,%eax /* daca eax este -1 inseamna ca avem o eroare */
+jl open_fail
+
+movl $file_stat,%eax
+movl 44(%eax),%ebx
+
+pushl %ebx
+pushl fd_nou
+pushl $full_file_path
+pushl $msj_complet
+call printf
+addl $16,%esp
 
 jmp et_read_loop
 
