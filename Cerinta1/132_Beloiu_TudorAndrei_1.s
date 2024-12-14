@@ -42,7 +42,7 @@ fd_nou: .space 4
 file_stat: .space 96
 st_size: .space 128
 msj_complet: .asciz "File: %s, Descriptor: %d, Size: %d\n"
-
+ok: .space 4
 
 .text
 
@@ -293,7 +293,57 @@ call printf
 popl %edx
 popl %eax
 
+
 endgetfunction:
+popl %ebp
+ret
+
+
+
+get_concrete:
+pushl %ebp
+movl %esp,%ebp
+
+movl 8(%ebp),%edi
+movl $0,%ecx
+movl $0,%ebx
+/* in 12 ebp am ok ul */
+
+get_concrete_line:
+cmpl $1024,%ebx
+je end_get_concrete
+
+movl $0,%ecx
+get_concrete_column:
+cmpl $1023,%ecx
+je changelineget_concrete
+
+movl $0,%edx
+movl $1024,%eax
+mull %ebx
+addl %ecx,%eax
+movl $0,%edx
+
+movb (%edi,%eax,1),%dl
+cmpb id,%dl
+jne changecolumnget_concrete
+
+jmp found_cant_place
+
+changecolumnget_concrete:
+incl %ecx
+jmp get_concrete_column
+
+changelineget_concrete:
+incl %ebx
+jmp get_concrete_line
+
+
+found_cant_place:
+movl 12(%ebp),%eax
+movl $0,(%eax)
+
+end_get_concrete:
 popl %ebp
 ret
 
@@ -807,10 +857,37 @@ popl %ebx
 popl %eax
 popl %ecx
 
+movl $0,%edx
 lea memorie,%edi
 movl id,%edx
 andl $0xFF,%edx
 movb %dl,id
+
+/* prima data vedem daca exista in memorie deja */
+movl $1,%edx
+movl %edx,ok
+
+pushl %eax
+pushl %ecx
+pushl $ok
+pushl %edi
+call get_concrete
+addl $8,%esp
+popl %ecx
+popl %eax
+
+movl ok,%edx
+
+cmpl $1,%edx
+jne next_in_add
+
+lea memorie,%edi
+movl $0,%edx
+lea memorie,%edi
+movl id,%edx
+andl $0xFF,%edx
+movb %dl,id
+
 
 pushl %ecx
 pushl %eax
@@ -828,7 +905,7 @@ popl %ebx
 popl %eax
 popl %ecx
 
-
+next_in_add:
 incl %eax
 jmp loopthroughoperations
 
@@ -1109,6 +1186,46 @@ jl et_read_files
 movl $file_stat,%eax
 movl 44(%eax),%ebx /* offset ul pana la st_size este 44 */
 
+/* acum trebuie sa verificam daca fd exista deja in memorie */
+/* daca nu exista, folosim add ul deja implementat */
+
+
+lea memorie,%edi
+movl fd_nou,%edx
+movb %dl,id
+
+movl $1,%eax
+movl %eax,ok
+
+pushl %ebx
+pushl %ecx
+pushl $ok
+pushl %edi
+call get_concrete
+addl $8,%esp
+popl %ecx
+popl %ebx
+
+/* daca ok este 1 inseamna ca nu l am gasit si putem face add cu el */
+movl ok,%eax
+cmpl $1,%eax
+jne print_our_file
+
+movl %ebx,sz
+
+pushl %ecx
+pushl %ebx
+pushl $indLinie
+pushl $indJDR
+pushl $indJST
+pushl $numberOfBlocks
+pushl %edi
+call addfunction
+addl $20,%esp
+popl %ebx
+popl %ecx
+
+print_our_file:
 pushl %ecx
 pushl %ebx
 pushl fd_nou
