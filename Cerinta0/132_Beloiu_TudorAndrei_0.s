@@ -119,7 +119,7 @@ putem:
 decl %ebx
 looputem:
 cmpl $0,%eax
-je nextidtrue
+je afisareadaugare
 
 movl $0,%edx
 movb id,%dl
@@ -133,7 +133,6 @@ incl %ebx
 jmp loopcompletarememorie
 
 nextidfalse:
-/*
 movl $0,%edx
 movzbl id,%edx
 
@@ -144,14 +143,14 @@ call printf
 popl %edx
 popl %eax
 popl %ecx
-*/
+
 decl %ecx
 jmp etloopadd
 
 nextidtrue:
 decl %ecx
 jmp etloopadd
-/*
+
 afisareadaugare:
 incl %ebx
 addl %ebx,%eax
@@ -174,7 +173,6 @@ popl %eax
 popl %ecx
 
 jmp nextidtrue
-*/
 
 endaddfunc:
 popl %ebp
@@ -389,7 +387,7 @@ popl %eax
 popl %eax
 popl %ecx
 
-
+/*
 lea memorie,%edi
 pushl %ecx
 pushl $stPrint
@@ -400,6 +398,7 @@ popl %eax
 popl %eax
 popl %eax
 popl %ecx
+*/
 
 decl %ecx
 jmp etloop
