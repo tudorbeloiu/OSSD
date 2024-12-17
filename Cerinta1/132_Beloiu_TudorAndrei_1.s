@@ -43,7 +43,9 @@ file_stat: .space 96
 st_size: .space 128
 msj_complet: .asciz "File: %s, Descriptor: %d, Size: %d\n"
 ok: .space 4
-
+isConcrete: .space 4
+outputConcrete: .asciz "(%d, %d): ((%d, %d), (%d, %d))\n"
+outputZeroConcrete: .asciz "(%d, %d): ((0, 0), (0, 0))\n"
 .text
 
 addfunction:
@@ -55,9 +57,9 @@ movl 8(%ebp),%edi
 movl $0,%edx
 movl sz,%eax
 cmpl $8,%eax
-jbe endaddfunction
+jbe endaddfunctionwith0
 cmpl $8192,%eax
-ja endaddfunction
+ja endaddfunctionwith0
 movl $8,%ebx
 divl %ebx
 movl %eax,%esi
@@ -73,7 +75,7 @@ movl $0,%ebx
 movl $0,%ecx
 addloopline:
 cmpl $1024,%ebx
-je endaddfunction
+je endaddfunctionwith0
 
 movl $0,%ecx
 addloopcolumn:
@@ -127,7 +129,7 @@ movl 12(%ebp),%esi
 movl (%esi),%esi
 completarecuid:
 cmpl $0,%esi
-je endaddfunction
+je afisareadaugare
 
 movl $0,%edx
 movl $1024,%eax
@@ -150,8 +152,12 @@ checknextline:
 incl %ebx
 jmp addloopline
 
-/*
+
 afisareadaugare:
+movl isConcrete,%esi
+cmpl $1,%esi
+je afisarePentruConcrete
+
 incl %ecx
 movl 12(%ebp),%esi
 movl (%esi),%esi
@@ -185,9 +191,50 @@ popl %esi
 popl %esi
 
 jmp endaddfunction
-*/
-/*
+
+afisarePentruConcrete:
+incl %ecx
+movl 12(%ebp),%esi
+movl (%esi),%esi
+addl %ecx,%esi
+subl $1,%esi
+
+movl 24(%ebp),%edx
+movl %ebx,(%edx)
+
+movl 20(%ebp),%edx
+movl %esi,(%edx)
+
+movl 16(%ebp),%edx
+movl %ecx,(%edx)
+
+movl $0,%edx
+movzbl id,%edx
+
+pushl indJDR
+pushl indLinie
+pushl indJST
+pushl indLinie
+pushl sz
+pushl %edx
+pushl $outputConcrete
+call printf
+popl %esi
+popl %edx
+popl %esi
+popl %esi
+popl %esi
+popl %esi
+popl %esi
+
+jmp endaddfunction
+
+
 endaddfunctionwith0:
+movl isConcrete,%edx
+cmpl $1,%edx
+je outputForConcrete
+
 movl $0,%edx
 movzbl id,%edx
 
@@ -200,7 +247,26 @@ popl %esi
 popl %edx
 popl %eax
 popl %ecx
-*/
+
+jmp endaddfunction
+
+outputForConcrete:
+movl $0,%edx
+movzbl id,%edx
+
+pushl %ecx
+pushl %eax
+pushl sz
+pushl %edx
+pushl $outputZeroConcrete
+call printf
+popl %esi
+popl %edx
+popl %esi
+popl %eax
+popl %ecx
+
+
 endaddfunction:
 popl %ebp
 ret
@@ -876,6 +942,9 @@ addl $8,%esp
 popl %ecx
 popl %eax
 
+movl $2,%edx
+movl %edx,isConcrete
+
 movl ok,%edx
 
 cmpl $1,%edx
@@ -905,11 +974,25 @@ popl %ebx
 popl %eax
 popl %ecx
 
+incl %eax
+jmp loopthroughoperations
+
 next_in_add:
+pushl %ecx
+pushl %eax
+pushl id
+pushl $outputZero
+call printf
+popl %ebx
+popl %ebx
+popl %eax
+popl %ecx
+
 incl %eax
 jmp loopthroughoperations
 
 endaddoperation:
+/*
 lea memorie,%edi
 
 pushl %ecx
@@ -923,6 +1006,7 @@ popl %eax
 popl %eax
 popl %eax
 popl %ecx
+*/
 
 decl %ecx
 jmp operationsloop
@@ -1091,7 +1175,7 @@ addl $4,%esp
 popl %ecx
 
 cmpl $0,%eax
-je print_memory_concrete /* daca eax este 0 (NULL), inseamna ca nu putem deschide directorul */
+je et_next_opp /* daca eax este 0 (NULL), inseamna ca nu putem deschide directorul */
 
 movl %eax,dir_ptr /* retin in dir_ptr adresa directorului */
 
@@ -1188,11 +1272,19 @@ movl 44(%eax),%ebx /* offset ul pana la st_size este 44 */
 
 /* acum trebuie sa verificam daca fd exista deja in memorie */
 /* daca nu exista, folosim add ul deja implementat */
-
+movl %ebx,%eax
+movl $0,%edx
+movl $1024,%esi
+divl %esi
+movl %eax,%ebx /* trebuie sa transformam in kb (adica /1024) */
+movl %ebx,sz
 
 lea memorie,%edi
 movl fd_nou,%edx
 movb %dl,id
+
+movl $1,%eax
+movl %eax,isConcrete
 
 movl $1,%eax
 movl %eax,ok
@@ -1209,7 +1301,7 @@ popl %ebx
 /* daca ok este 1 inseamna ca nu l am gasit si putem face add cu el */
 movl ok,%eax
 cmpl $1,%eax
-jne print_our_file
+jne descriptor_repetat
 
 movl %ebx,sz
 
@@ -1224,8 +1316,21 @@ call addfunction
 addl $20,%esp
 popl %ebx
 popl %ecx
+/* acum trebuie sa afisam sub forma (id,dimensiune): (...) */
+jmp et_read_files
 
-print_our_file:
+descriptor_repetat:
+pushl %ecx
+pushl sz
+pushl fd_nou
+pushl $outputZeroConcrete
+call printf
+addl $12,%esp
+popl %ecx
+
+jmp et_read_files
+
+/*
 pushl %ecx
 pushl %ebx
 pushl fd_nou
@@ -1234,8 +1339,8 @@ pushl $msj_complet
 call printf
 addl $16,%esp
 popl %ecx
+*/
 
-jmp et_read_files
 
 close_dir:
 pushl %ecx
@@ -1243,7 +1348,10 @@ pushl %ebx
 call closedir
 addl $4,%esp
 popl %ecx
-
+et_next_opp:
+decl %ecx
+jmp operationsloop
+/*
 jmp print_memory_concrete
 
 print_memory_concrete:
@@ -1263,7 +1371,7 @@ popl %ecx
 
 decl %ecx
 jmp operationsloop
-
+*/
 
 et_exit:
 pushl $0
