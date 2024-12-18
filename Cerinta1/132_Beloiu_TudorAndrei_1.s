@@ -57,9 +57,9 @@ movl 8(%ebp),%edi
 movl $0,%edx
 movl sz,%eax
 cmpl $8,%eax
-jbe endaddfunction
+jbe endaddfunctionwith0
 cmpl $8192,%eax
-ja endaddfunction
+ja endaddfunctionwith0
 movl $8,%ebx
 divl %ebx
 movl %eax,%esi
