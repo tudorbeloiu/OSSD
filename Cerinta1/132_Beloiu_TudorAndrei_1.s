@@ -46,6 +46,7 @@ ok: .space 4
 isConcrete: .space 4
 outputConcrete: .asciz "(%d, %d): ((%d, %d), (%d, %d))\n"
 outputZeroConcrete: .asciz "(%d, %d): ((0, 0), (0, 0))\n"
+singleNumber: .asciz "%d\n"
 .text
 
 addfunction:
@@ -211,17 +212,30 @@ movl %ecx,(%edx)
 movl $0,%edx
 movzbl id,%edx
 
+pushl %edx
+pushl $singleNumber
+call printf
+popl %esi
+popl %edx
+
+pushl sz
+pushl $singleNumber
+call printf
+popl %esi
+popl %esi
+
+movl $0,%edx
+movzbl id,%edx
+
 pushl indJDR
 pushl indLinie
 pushl indJST
 pushl indLinie
-pushl sz
 pushl %edx
-pushl $outputConcrete
+pushl $intervalOutput
 call printf
 popl %esi
 popl %edx
-popl %esi
 popl %esi
 popl %esi
 popl %esi
@@ -256,13 +270,34 @@ movzbl id,%edx
 
 pushl %ecx
 pushl %eax
-pushl sz
 pushl %edx
-pushl $outputZeroConcrete
+pushl $singleNumber
 call printf
 popl %esi
 popl %edx
+popl %eax
+popl %ecx
+
+pushl %ecx
+pushl %eax
+pushl sz
+pushl $singleNumber
+call printf
 popl %esi
+popl %edx
+popl %eax
+popl %ecx
+
+movl $0,%edx
+movzbl id,%edx
+
+pushl %ecx
+pushl %eax
+pushl %edx
+pushl $outputZero
+call printf
+popl %esi
+popl %edx
 popl %eax
 popl %ecx
 
@@ -1321,11 +1356,24 @@ jmp et_read_files
 
 descriptor_repetat:
 pushl %ecx
-pushl sz
 pushl fd_nou
-pushl $outputZeroConcrete
+pushl $singleNumber
 call printf
-addl $12,%esp
+addl $8,%esp
+popl %ecx
+
+pushl %ecx
+pushl sz
+pushl $singleNumber
+call printf
+addl $8,%esp
+popl %ecx
+
+pushl %ecx
+pushl fd_nou
+pushl $outputZero
+call printf
+addl $8,%esp
 popl %ecx
 
 jmp et_read_files
