@@ -1308,6 +1308,7 @@ movl 44(%eax),%ebx /* offset ul pana la st_size este 44 */
 /* acum trebuie sa verificam daca fd exista deja in memorie */
 /* daca nu exista, folosim add ul deja implementat */
 movl %ebx,%eax
+addl $1023,%eax
 movl $0,%edx
 movl $1024,%esi
 divl %esi
