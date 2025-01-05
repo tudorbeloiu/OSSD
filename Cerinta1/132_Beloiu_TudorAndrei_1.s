@@ -33,7 +33,7 @@ int_output: .asciz "%d\n"
 format_path: .asciz "%s/%s"
 dir_ptr: .space 4
 file_name: .space 256
-full_file_path: .space 512
+full_file_path: .space 10000
 offset: .long 11 /* pentru d_name, structura dirent are mai multe campuri */
 dot: .asciz "."
 dotdot: .asciz ".."
@@ -1260,7 +1260,7 @@ pushl %ecx
 pushl %ebx /* contine entry -> d_name */
 pushl $dir
 pushl $format_path
-pushl $512
+pushl $10000
 pushl $full_file_path
 call snprintf
 addl $20,%esp /*snprintf rescrie complet full_path cu noua cale completa */
@@ -1308,7 +1308,6 @@ movl 44(%eax),%ebx /* offset ul pana la st_size este 44 */
 /* acum trebuie sa verificam daca fd exista deja in memorie */
 /* daca nu exista, folosim add ul deja implementat */
 movl %ebx,%eax
-addl $1023,%eax
 movl $0,%edx
 movl $1024,%esi
 divl %esi
